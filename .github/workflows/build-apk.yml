@@ -1,0 +1,70 @@
+name: Build Release APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android Release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Bootstrap Android / iOS / web scaffolding
+        # `flutter create .` only writes files that don't already exist,
+        # so our hand-written lib/ and pubspec.yaml are preserved.
+        run: flutter create --org com.poepoe --project-name poepoe .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify analysis
+        run: flutter analyze --no-fatal-infos || true
+
+      - name: Build release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Rename APK
+        run: |
+          mkdir -p output
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            output/poepoe-${{ github.sha }}.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: poepoe-release-apk
+          path: output/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Summarize build
+        run: |
+          echo "### Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- APK path: \`output/poepoe-${{ github.sha }}.apk\`" >> $GITHUB_STEP_SUMMARY
+          ls -lh output/
