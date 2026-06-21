@@ -1,24 +1,44 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/mock/mock_data.dart';
+import '../../data/services/auth_service.dart';
 import '../../domain/models/user_profile.dart';
 import '../../widgets/feedback_x.dart';
 import '../../widgets/poe_avatar.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late UserProfile _user;
+  late final TextEditingController _nameCtl;
+  late final TextEditingController _statusCtl;
 
   @override
   void initState() {
     super.initState();
-    _user = MockData.currentUser;
+    final fb = FirebaseAuth.instance.currentUser;
+    _user = UserProfile(
+      id: fb?.uid ?? 'me',
+      name: fb?.displayName ?? fb?.email?.split('@').first ?? 'You',
+      avatarUrl: fb?.photoURL,
+      status: 'Hey there! I am using PoePoe.',
+      isOnline: true,
+    );
+    _nameCtl = TextEditingController(text: _user.name);
+    _statusCtl = TextEditingController(text: _user.status ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameCtl.dispose();
+    _statusCtl.dispose();
+    super.dispose();
   }
 
   @override
@@ -141,9 +161,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _ListTile(
                 icon: Icons.logout_rounded,
                 title: 'Log out',
-                subtitle: null,
+                subtitle: FirebaseAuth.instance.currentUser?.email,
                 color: theme.colorScheme.error,
-                onTap: () => FeedbackX.comingSoon(context, 'Logout'),
+                onTap: _logout,
               ),
             ],
           ),
@@ -151,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Made with ❤️ using Flutter\nStep 2: tabs + tap feedback',
+              'Made with ❤️ using Flutter\nStep 3: Firebase Auth + Login UI',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -163,10 +183,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _openEditDialog() {
-    final nameCtl = TextEditingController(text: _user.name);
-    final statusCtl = TextEditingController(text: _user.status ?? '');
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('You will need to sign in again to use PoePoe.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(authServiceProvider).signOut();
+    if (!mounted) return;
+    FeedbackX.toast(context, 'Signed out',
+        icon: Icons.logout_rounded);
+  }
 
+  void _openEditDialog() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -175,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: nameCtl,
+              controller: _nameCtl,
               decoration: const InputDecoration(
                 labelText: 'Display name',
                 prefixIcon: Icon(Icons.person_outline_rounded),
@@ -184,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: statusCtl,
+              controller: _statusCtl,
               decoration: const InputDecoration(
                 labelText: 'Status',
                 prefixIcon: Icon(Icons.sentiment_satisfied_outlined),
@@ -200,9 +245,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              final name = nameCtl.text.trim();
-              final status = statusCtl.text.trim();
+            onPressed: () async {
+              final name = _nameCtl.text.trim();
+              final status = _statusCtl.text.trim();
               if (name.isEmpty) {
                 FeedbackX.toast(ctx, 'Name cannot be empty',
                     icon: Icons.error_outline_rounded);
@@ -218,6 +263,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   lastSeen: _user.lastSeen,
                 );
               });
+              // Update Firebase display name in the background.
+              final fb = FirebaseAuth.instance.currentUser;
+              if (fb != null) {
+                await fb.updateDisplayName(name);
+              }
+              if (!mounted) return;
               Navigator.pop(ctx);
               FeedbackX.toast(context, 'Profile updated',
                   icon: Icons.check_circle_rounded);

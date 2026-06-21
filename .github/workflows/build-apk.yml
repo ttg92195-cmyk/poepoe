@@ -11,7 +11,7 @@ jobs:
   build:
     name: Build Android Release APK
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout source
@@ -34,8 +34,14 @@ jobs:
 
       - name: Bootstrap Android / iOS / web scaffolding
         # `flutter create .` only writes files that don't already exist,
-        # so our hand-written lib/ and pubspec.yaml are preserved.
+        # so our hand-written lib/, pubspec.yaml, and android/app/google-services.json
+        # are preserved.
         run: flutter create --org com.poepoe --project-name poepoe .
+
+      - name: Patch Firebase gradle config
+        # Injects the Google Services plugin into the auto-generated gradle files
+        # so `flutter build apk` can resolve firebase_core / firebase_auth / cloud_firestore.
+        run: bash scripts/patch_firebase.sh .
 
       - name: Install dependencies
         run: flutter pub get
