@@ -36,7 +36,12 @@ jobs:
         # `flutter create .` only writes files that don't already exist,
         # so our hand-written lib/, pubspec.yaml, and android/app/google-services.json
         # are preserved.
-        run: flutter create --org com.poepoe --project-name poepoe .
+        #
+        # IMPORTANT: we use `--org com` so the generated applicationId is
+        # `com.poepoe` (org . project_name). This matches the package name
+        # registered in Firebase (com.poepoe). Using `--org com.poepoe` would
+        # produce `com.poepoe.poepoe` which breaks google-services.json.
+        run: flutter create --org com --project-name poepoe .
 
       - name: Patch Firebase gradle config
         # Injects the Google Services plugin into the auto-generated gradle files

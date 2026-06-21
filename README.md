@@ -92,7 +92,7 @@ Every push to `main` triggers the **Build Release APK** GitHub Action.
 ## Local development (optional)
 
 ```bash
-flutter create --org com.poepoe --project-name poepoe .
+flutter create --org com --project-name poepoe .
 bash scripts/patch_firebase.sh .
 flutter pub get
 flutter run
