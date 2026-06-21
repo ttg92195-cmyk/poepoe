@@ -302,14 +302,40 @@ class _ChatTile extends StatelessWidget {
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          child: ListTile(
-            leading: const Icon(Icons.delete_outline_rounded),
-            title: const Text('Delete chat'),
-            onTap: () {
-              Navigator.pop(ctx);
-              FeedbackX.comingSoon(context, 'Delete chat');
-            },
-          ),
+          children: [
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded),
+              title: const Text('Delete chat'),
+              onTap: () {
+                Navigator.pop(ctx);
+                FeedbackX.comingSoon(context, 'Delete chat');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.push_pin_outlined),
+              title: const Text('Pin chat'),
+              onTap: () {
+                Navigator.pop(ctx);
+                FeedbackX.toast(
+                  context,
+                  'Chat pinned',
+                  icon: Icons.push_pin_rounded,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_off_outlined),
+              title: const Text('Mute notifications'),
+              onTap: () {
+                Navigator.pop(ctx);
+                FeedbackX.toast(
+                  context,
+                  'Muted',
+                  icon: Icons.notifications_off_rounded,
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

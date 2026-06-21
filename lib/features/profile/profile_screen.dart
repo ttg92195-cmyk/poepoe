@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'App',
             children: [
               _ListTile(
-                icon: Icons.dark_mode_outline_rounded,
+                icon: Icons.dark_mode_outlined,
                 title: 'Dark mode',
                 subtitle: 'Follow system',
                 trailing: _ThemeDropdown(),
