@@ -40,7 +40,7 @@ class CallsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showNewCallSheet(context),
-        child: const Icon(Icons.add_call_rounded),
+        child: const Icon(Icons.add_call),
       ),
     );
   }
@@ -151,7 +151,7 @@ class _StartCallTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.add_call_rounded,
+                Icons.add_call,
                 color: theme.colorScheme.primary,
               ),
             ),
