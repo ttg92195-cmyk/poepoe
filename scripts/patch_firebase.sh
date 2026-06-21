@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Patch the auto-generated Android Gradle files to enable Firebase.
 #
-# Context: in CI we run `flutter create .` which generates the default
-# android/{build.gradle,app/build.gradle,settings.gradle} files. These
-# default files do NOT include the Google Services plugin. This script
-# injects the necessary lines so `flutter build apk` can resolve
-# Firebase plugins.
+# Flutter 3.x generates Kotlin DSL gradle files (settings.gradle.kts,
+# build.gradle.kts, app/build.gradle.kts). This script:
+#   1. Adds the Google Services plugin to settings.gradle.kts plugins block
+#   2. Adds the classpath dependency to build.gradle.kts
+#   3. Applies the plugin in app/build.gradle.kts
 #
 # Idempotent: running it twice is safe.
 set -euo pipefail
@@ -21,36 +21,43 @@ if [[ ! -f "$APP_DIR/google-services.json" ]]; then
   exit 1
 fi
 
-# ---- 1. Patch android/build.gradle (add classpath) ----
-ROOT_GRADLE="$ANDROID_DIR/build.gradle"
-echo "[patch_firebase] Patching $ROOT_GRADLE"
-if ! grep -q "com.google.gms:google-services" "$ROOT_GRADLE"; then
-  python3 - "$ROOT_GRADLE" "$GRADLE_PLUGIN_VER" <<'PY'
-import sys
-path, ver = sys.argv[1], sys.argv[2]
+# ---- 1. Patch android/settings.gradle.kts (add plugin to plugins block) ----
+SETTINGS_KTS="$ANDROID_DIR/settings.gradle.kts"
+echo "[patch_firebase] Patching $SETTINGS_KTS"
+if [[ -f "$SETTINGS_KTS" ]] && ! grep -q "com.google.gms.google-services" "$SETTINGS_KTS"; then
+  python3 - "$SETTINGS_KTS" <<'PY'
+import sys, re
+path = sys.argv[1]
 src = open(path).read()
-needle = "dependencies {"
-if needle in src:
-    src = src.replace(
-        needle,
-        f"{needle}\n        classpath 'com.google.gms:google-services:{ver}'",
-        1,
+# Add id("com.google.gms.google-services") version "4.4.2" apply false
+# inside the plugins { } block.
+m = re.search(r"plugins\s*\{", src)
+if m:
+    insert_pos = m.end()
+    src = (
+        src[:insert_pos]
+        + '\n    id("com.google.gms.google-services") version "4.4.2" apply false'
+        + src[insert_pos:]
     )
 open(path, "w").write(src)
 PY
-  echo "[patch_firebase]   added classpath entry"
+  echo "[patch_firebase]   added google-services plugin to settings.gradle.kts"
 else
-  echo "[patch_firebase]   already patched, skipping"
+  echo "[patch_firebase]   settings.gradle.kts missing or already patched"
 fi
 
-# ---- 2. Patch android/app/build.gradle (apply plugin) ----
-APP_GRADLE="$APP_DIR/build.gradle"
-echo "[patch_firebase] Patching $APP_GRADLE"
-if ! grep -q "com.google.gms.google-services" "$APP_GRADLE"; then
-  printf "\n// Firebase: apply google-services plugin\napply plugin: 'com.google.gms.google-services'\n" >> "$APP_GRADLE"
-  echo "[patch_firebase]   appended apply plugin line"
+# ---- 2. Patch android/build.gradle.kts (no-op: handled by settings.gradle.kts) ----
+ROOT_KTS="$ANDROID_DIR/build.gradle.kts"
+echo "[patch_firebase] (no changes needed in $ROOT_KTS — plugins declared in settings.gradle.kts)"
+
+# ---- 3. Patch android/app/build.gradle.kts (apply plugin at end) ----
+APP_KTS="$APP_DIR/build.gradle.kts"
+echo "[patch_firebase] Patching $APP_KTS"
+if [[ -f "$APP_KTS" ]] && ! grep -q "com.google.gms.google-services" "$APP_KTS"; then
+  printf '\n// Firebase: apply google-services plugin\napply(plugin = "com.google.gms.google-services")\n' >> "$APP_KTS"
+  echo "[patch_firebase]   appended apply(plugin = ...) line"
 else
-  echo "[patch_firebase]   already patched, skipping"
+  echo "[patch_firebase]   app/build.gradle.kts missing or already patched"
 fi
 
 echo "[patch_firebase] Done. Firebase gradle config is now active."
