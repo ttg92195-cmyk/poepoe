@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/services/auth_service.dart';
+import '../../providers/auth_providers.dart';
 import '../../widgets/feedback_x.dart';
 import 'auth_layout.dart';
 

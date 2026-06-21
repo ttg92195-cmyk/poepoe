@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/services/auth_service.dart';
 import '../../domain/models/user_profile.dart';
+import '../../providers/auth_providers.dart';
 import '../../widgets/feedback_x.dart';
 import '../../widgets/poe_avatar.dart';
 
