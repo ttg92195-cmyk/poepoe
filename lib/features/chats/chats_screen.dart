@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../data/mock/mock_data.dart';
 import '../../domain/models/chat.dart';
+import '../../domain/models/chat_message.dart';
 import '../../widgets/poe_avatar.dart';
 
 class ChatsScreen extends StatelessWidget {

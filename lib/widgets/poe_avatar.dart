@@ -21,7 +21,7 @@ class PoeAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = 'https://ui-avatars.com/api/?background=random&size=${(size * 2).toInt()}&name=${Uri.encodeComponent(name)}';
-    final src = (url == null || url!.isEmpty) ? fallback : url;
+    final String src = (url == null || url!.isEmpty) ? fallback : url!;
 
     return Stack(
       children: [

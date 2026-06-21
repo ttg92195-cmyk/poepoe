@@ -232,7 +232,7 @@ class _Composer extends StatelessWidget {
                   suffixIcon: IconButton(
                     onPressed: () {},
                     icon: Icon(
-                      Icons.emoji_emotions_outline_rounded,
+                      Icons.sentiment_satisfied_outlined,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),

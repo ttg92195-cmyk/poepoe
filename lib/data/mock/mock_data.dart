@@ -1,6 +1,6 @@
-import '../domain/models/chat.dart';
-import '../domain/models/chat_message.dart';
-import '../domain/models/user_profile.dart';
+import '../../domain/models/chat.dart';
+import '../../domain/models/chat_message.dart';
+import '../../domain/models/user_profile.dart';
 
 /// Mock data used in step 1 (no Firebase yet).
 /// Replaced with Firestore streams in step 3.
