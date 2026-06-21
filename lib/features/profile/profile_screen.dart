@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 
 import '../../data/mock/mock_data.dart';
+import '../../domain/models/user_profile.dart';
+import '../../widgets/feedback_x.dart';
 import '../../widgets/poe_avatar.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late UserProfile _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _user = MockData.currentUser;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = MockData.currentUser;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -20,37 +34,39 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 PoeAvatar(
-                  url: user.avatarUrl,
-                  name: user.name,
+                  url: _user.avatarUrl,
+                  name: _user.name,
                   size: 112,
-                  isOnline: user.isOnline,
+                  isOnline: _user.isOnline,
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  user.name,
+                  _user.name,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user.status ?? 'Hey there! I am using PoePoe.',
+                  _user.status ?? 'Hey there! I am using PoePoe.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: _openEditDialog,
                       icon: const Icon(Icons.edit_rounded, size: 18),
                       label: const Text('Edit profile'),
                     ),
                     const SizedBox(width: 12),
                     OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () =>
+                          FeedbackX.comingSoon(context, 'QR code'),
                       icon: const Icon(Icons.qr_code_2_rounded, size: 18),
                       label: const Text('QR code'),
                     ),
@@ -61,90 +77,219 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           _Section(
+            title: 'Account',
             children: [
               _ListTile(
-                icon: Icons.person_outline_rounded,
-                title: 'Account',
-                subtitle: 'Privacy, security, change number',
-                onTap: () {},
+                icon: Icons.lock_outline_rounded,
+                title: 'Privacy',
+                subtitle: 'Block contacts, disappearing messages',
+                onTap: () => FeedbackX.comingSoon(context, 'Privacy'),
               ),
               _ListTile(
                 icon: Icons.notifications_none_rounded,
                 title: 'Notifications',
                 subtitle: 'Message, group & call tones',
-                onTap: () {},
+                onTap: () => FeedbackX.comingSoon(context, 'Notifications'),
               ),
               _ListTile(
-                icon: Icons.lock_outline_rounded,
-                title: 'Privacy',
-                subtitle: 'Block contacts, disappearing messages',
-                onTap: () {},
+                icon: Icons.storage_rounded,
+                title: 'Storage & data',
+                subtitle: 'Network usage, auto-download',
+                onTap: () => FeedbackX.comingSoon(context, 'Storage'),
               ),
             ],
           ),
           const SizedBox(height: 16),
           _Section(
+            title: 'App',
             children: [
+              _ListTile(
+                icon: Icons.dark_mode_outline_rounded,
+                title: 'Dark mode',
+                subtitle: 'Follow system',
+                trailing: _ThemeDropdown(),
+                onTap: () => FeedbackX.toast(
+                  context,
+                  'Use the dropdown to switch theme',
+                  icon: Icons.palette_outlined,
+                ),
+              ),
+              _ListTile(
+                icon: Icons.language_rounded,
+                title: 'App language',
+                subtitle: 'English',
+                onTap: () => FeedbackX.comingSoon(context, 'App language'),
+              ),
               _ListTile(
                 icon: Icons.help_outline_rounded,
                 title: 'Help',
                 subtitle: 'Help center, contact us, terms',
-                onTap: () {},
+                onTap: () => FeedbackX.comingSoon(context, 'Help'),
               ),
               _ListTile(
                 icon: Icons.info_outline_rounded,
                 title: 'About',
-                subtitle: 'PoePoe v1.0.0 (Step 1 — Skeleton)',
-                onTap: () {},
+                subtitle: 'PoePoe v1.0.0 (Step 2 — Tabs & feedback)',
+                onTap: () => _showAboutDialog(context),
               ),
             ],
           ),
           const SizedBox(height: 16),
           _Section(
+            title: 'Session',
             children: [
               _ListTile(
                 icon: Icons.logout_rounded,
                 title: 'Log out',
                 subtitle: null,
                 color: theme.colorScheme.error,
-                onTap: () {},
+                onTap: () => FeedbackX.comingSoon(context, 'Logout'),
               ),
             ],
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Made with ❤️ using Flutter\nStep 2: tabs + tap feedback',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
     );
   }
+
+  void _openEditDialog() {
+    final nameCtl = TextEditingController(text: _user.name);
+    final statusCtl = TextEditingController(text: _user.status ?? '');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtl,
+              decoration: const InputDecoration(
+                labelText: 'Display name',
+                prefixIcon: Icon(Icons.person_outline_rounded),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: statusCtl,
+              decoration: const InputDecoration(
+                labelText: 'Status',
+                prefixIcon: Icon(Icons.sentiment_satisfied_outlined),
+              ),
+              textCapitalization: TextCapitalization.sentences,
+              maxLength: 80,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final name = nameCtl.text.trim();
+              final status = statusCtl.text.trim();
+              if (name.isEmpty) {
+                FeedbackX.toast(ctx, 'Name cannot be empty',
+                    icon: Icons.error_outline_rounded);
+                return;
+              }
+              setState(() {
+                _user = UserProfile(
+                  id: _user.id,
+                  name: name,
+                  avatarUrl: _user.avatarUrl,
+                  status: status.isEmpty ? null : status,
+                  isOnline: _user.isOnline,
+                  lastSeen: _user.lastSeen,
+                );
+              });
+              Navigator.pop(ctx);
+              FeedbackX.toast(context, 'Profile updated',
+                  icon: Icons.check_circle_rounded);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showAboutDialog(
+      context: context,
+      applicationName: 'PoePoe',
+      applicationVersion: '1.0.0 (Step 2)',
+      applicationLegalese: '© 2026 PoePoe',
+      children: [
+        const SizedBox(height: 12),
+        const Text(
+          'A modern Flutter messaging app built step-by-step. This is step 2: tabs and tap feedback.',
+        ),
+      ],
+    );
+  }
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.children});
+  const _Section({required this.title, required this.children});
+  final String title;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          child: Text(
+            title,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          for (int i = 0; i < children.length; i++) ...[
-            children[i],
-            if (i != children.length - 1)
-              const Padding(
-                padding: EdgeInsets.only(left: 56),
-                child: Divider(height: 1, thickness: 0.4),
-              ),
-          ],
-        ],
-      ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+            ),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < children.length; i++) ...[
+                children[i],
+                if (i != children.length - 1)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 56),
+                    child: Divider(height: 1, thickness: 0.4),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -156,6 +301,7 @@ class _ListTile extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.color,
+    this.trailing,
   });
 
   final IconData icon;
@@ -163,6 +309,7 @@ class _ListTile extends StatelessWidget {
   final String? subtitle;
   final VoidCallback onTap;
   final Color? color;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -210,13 +357,52 @@ class _ListTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            if (trailing != null)
+              trailing!
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Tiny inline dropdown used to switch theme mode (local, in-memory only).
+class _ThemeDropdown extends StatelessWidget {
+  _ThemeDropdown();
+
+  final ValueNotifier<ThemeMode> _mode =
+      ValueNotifier<ThemeMode>(ThemeMode.system);
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: _mode,
+      builder: (context, mode, _) {
+        return DropdownButton<ThemeMode>(
+          value: mode,
+          underline: const SizedBox(),
+          isDense: true,
+          items: const [
+            DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
+            DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
+            DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+          ],
+          onChanged: (v) {
+            if (v == null) return;
+            _mode.value = v;
+            FeedbackX.toast(
+              context,
+              'Theme: ${v.name}',
+              icon: Icons.palette_outlined,
+            );
+          },
+        );
+      },
     );
   }
 }

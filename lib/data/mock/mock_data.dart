@@ -1,5 +1,7 @@
+import '../../domain/models/call_entry.dart';
 import '../../domain/models/chat.dart';
 import '../../domain/models/chat_message.dart';
+import '../../domain/models/status_entry.dart';
 import '../../domain/models/user_profile.dart';
 
 /// Mock data used in step 1 (no Firebase yet).
@@ -201,4 +203,108 @@ class MockData {
       ),
     ],
   };
+
+  /// Mock recent calls for the Calls tab.
+  static final List<CallEntry> calls = [
+    CallEntry(
+      id: 'call1',
+      name: 'Aung Aung',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Aung+Aung',
+      type: CallType.voice,
+      direction: CallDirection.incoming,
+      at: DateTime.now().subtract(const Duration(minutes: 18)),
+      duration: const Duration(minutes: 4, seconds: 22),
+    ),
+    CallEntry(
+      id: 'call2',
+      name: 'Hla Hla',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Hla+Hla',
+      type: CallType.video,
+      direction: CallDirection.missed,
+      at: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    CallEntry(
+      id: 'call3',
+      name: 'Ko Zaw',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Ko+Zaw',
+      type: CallType.voice,
+      direction: CallDirection.outgoing,
+      at: DateTime.now().subtract(const Duration(hours: 8)),
+      duration: const Duration(minutes: 1, seconds: 12),
+    ),
+    CallEntry(
+      id: 'call4',
+      name: 'Ma Su',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Ma+Su',
+      type: CallType.video,
+      direction: CallDirection.outgoing,
+      at: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
+      duration: const Duration(minutes: 12, seconds: 5),
+    ),
+    CallEntry(
+      id: 'call5',
+      name: 'PoePoe Team',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=PoePoe',
+      type: CallType.voice,
+      direction: CallDirection.incoming,
+      at: DateTime.now().subtract(const Duration(days: 2)),
+      duration: const Duration(seconds: 47),
+    ),
+  ];
+
+  /// Mock status / stories for the Status tab.
+  static final List<StatusEntry> myStatus = [
+    StatusEntry(
+      id: 'my0',
+      name: 'You',
+      avatarUrl: currentUser.avatarUrl,
+      caption: 'Tap to add status',
+      at: DateTime.now(),
+    ),
+  ];
+
+  static final List<StatusEntry> recentStatuses = [
+    StatusEntry(
+      id: 's1',
+      name: 'Aung Aung',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Aung+Aung',
+      caption: 'Good morning ☀️',
+      at: DateTime.now().subtract(const Duration(minutes: 25)),
+    ),
+    StatusEntry(
+      id: 's2',
+      name: 'Ko Zaw',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Ko+Zaw',
+      caption: 'At the office 💻',
+      at: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+    StatusEntry(
+      id: 's3',
+      name: 'Ma Su',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Ma+Su',
+      caption: 'Lunch time!',
+      at: DateTime.now().subtract(const Duration(hours: 5)),
+      viewed: true,
+    ),
+  ];
+
+  static final List<StatusEntry> viewedStatuses = [
+    StatusEntry(
+      id: 's4',
+      name: 'Hla Hla',
+      avatarUrl:
+          'https://ui-avatars.com/api/?background=random&size=128&name=Hla+Hla',
+      caption: 'Weekend vibes',
+      at: DateTime.now().subtract(const Duration(days: 1)),
+      viewed: true,
+    ),
+  ];
 }
